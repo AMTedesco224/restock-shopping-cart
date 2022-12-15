@@ -1,10 +1,12 @@
 // simulate getting products from DataBase
 const products = [
-  { name: 'Apples', country: 'Italy', cost: 3, instock: 10 },
-  { name: 'Oranges', country: 'Spain', cost: 4, instock: 3 },
-  { name: 'Beans', country: 'USA', cost: 2, instock: 5 },
-  { name: 'Cabbage', country: 'USA', cost: 1, instock: 8 },
+  { name: 'Apples', country: 'Italy', cost: 3, instock: 5 },
+  { name: 'Oranges', country: 'Spain', cost: 4, instock: 6 },
+  { name: 'Beans', country: 'USA', cost: 2, instock: 9 },
+  { name: 'Cabbage', country: 'USA', cost: 1, instock: 4 },
 ];
+
+//eventKey
 //=========Cart=============
 const Cart = (props) => {
   const { Card, Accordion, Button } = ReactBootstrap;
@@ -92,9 +94,12 @@ const Products = (props) => {
   const addToCart = (e) => {
     let name = e.target.name;
     let item = items.filter((item) => item.name == name);
-    console.log(`add to Cart ${JSON.stringify(item)}`);
-    setCart([...cart, ...item]);
-    doFetch(query);
+    if(item[0].instock== 0) return;
+    
+      console.log(`add to Cart ${JSON.stringify(item)}`);
+      item[0].instock --;
+      //setItems([...items,item]);
+      setCart([...cart, ...item]);
   };
   const deleteCartItem = (index) => {
     let newCart = cart.filter((item, i) => index != i);
@@ -103,12 +108,12 @@ const Products = (props) => {
   const photos = ['apple.png', 'orange.png', 'beans.png', 'cabbage.png'];
 
   let list = items.map((item, index) => {
-    let n = index + 1049;
-    let url = "https://picsum.photos/id/" + n + "/50/50";
+    //let n = index + 1049;
+    //let url = "https://picsum.photos/id/" + n + "/50/50";
 
     return (
       <li key={index}>
-        <Image src={url} width={70} roundedCircle></Image>
+        <Image src={photos[index % 4]} width={70} roundedCircle></Image>
         <Button variant="primary" size="large">
           {item.name}:{item.cost}:{item.instock}
         </Button>
@@ -123,7 +128,7 @@ const Products = (props) => {
           {item.name}
         </Accordion.Header>
         <Accordion.Body onClick={() => deleteCartItem(index)}
-          eventKey={1 + index}>
+          >
           $ {item.cost} from {item.country}
         </Accordion.Body>
       </Accordion.Item>
@@ -152,12 +157,10 @@ const Products = (props) => {
   const restockProducts = (url) => {
     doFetch(url);
     let newItems = data.map((item) => {
-      let { name, country, cost, instock } = item;
+      let {attributes: { name, country, cost, instock }} = item;
       return { name, country, cost, instock };
     });
-    for(let i = 0; i < items.length; i++) console.log(`ITEMS===${JSON.stringify(newItems[i])}`)
     setItems([...items, ...newItems]);
-    
   };
 
   return (
@@ -180,7 +183,7 @@ const Products = (props) => {
       <Row>
         <form
           onSubmit={(event) => {
-            restockProducts(`http://localhost:1337/api/${query}`);
+            restockProducts(`http://localhost:1337/${query}`);
             console.log(`Restock called on ${query}`);
             event.preventDefault();
           }}
